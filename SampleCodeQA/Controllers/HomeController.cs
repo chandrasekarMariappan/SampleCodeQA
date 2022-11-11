@@ -28,7 +28,7 @@ namespace SampleCodeQA.Controllers
             c.ActionName = "Kafka";
             OracleCommand cmd = new OracleCommand("select *from perf where id="+3, c);
             OracleDataAdapter adp = new OracleDataAdapter(cmd);
-            Console.WriteLine(cmd.ExecuteNonQuery());
+           
         }
 
         public ActionResult Contact()
