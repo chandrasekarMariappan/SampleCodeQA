@@ -28,7 +28,7 @@ namespace SampleCodeQA.Controllers
             //c.ActionName = "Kafka";          
             //OracleCommand cmd = new OracleCommand("SELECT ITEM,PRICE FROM PRODUCT WHERE ITEM_CATEGORY='" + input + "' ORDER BY PRICE", c);
             //OracleDataAdapter adp = new OracleDataAdapter(cmd);
-           
+            return View();
         }
 
         public ActionResult Contact()
