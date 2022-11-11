@@ -26,10 +26,9 @@ namespace SampleCodeQA.Controllers
             c.ClientInfo = "Sample Application";
             c.ModuleName = "Chandrasekar";
             c.ActionName = "Kafka";
-            OracleCommand cmd = new OracleCommand("select *from perf where id=3", c);
+            OracleCommand cmd = new OracleCommand("select *from perf where id="+3, c);
             OracleDataAdapter adp = new OracleDataAdapter(cmd);
-            DataSet ds = new DataSet();
-            adp.Fill(ds);
+            Console.WriteLine(cmd.ExecuteNonQuery());
         }
 
         public ActionResult Contact()
