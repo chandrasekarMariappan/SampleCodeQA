@@ -18,6 +18,7 @@ namespace SqlInjection
                 var result = new DataSet();
                 adapter.Fill(result);
                 Console.WriteLine("Completed");
+                Console.WriteLine("Completed");
             }   
         }
     }
