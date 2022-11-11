@@ -27,7 +27,7 @@ namespace SampleCodeQA.Controllers
             c.ModuleName = "Chandrasekar";
             c.ActionName = "Kafka";
             input = System.Console.ReadLine();
-            OracleCommand cmd = new OracleCommand("SELECT ITEM,PRICE FROM PRODUCT WHERE ITEM_CATEGORY='" + input + "' ORDER BY PRICE";, c);
+            OracleCommand cmd = new OracleCommand("SELECT ITEM,PRICE FROM PRODUCT WHERE ITEM_CATEGORY='" + input + "' ORDER BY PRICE", c);
             OracleDataAdapter adp = new OracleDataAdapter(cmd);
            
         }
