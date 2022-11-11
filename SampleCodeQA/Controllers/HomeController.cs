@@ -19,15 +19,15 @@ namespace SampleCodeQA.Controllers
         {
             ViewBag.Message = "Your application description page.";
 
-            return View();
-            var connc = @"DATA SOURCE=localhost:1521/xe;SELF TUNING=True;USER ID=system;password=p#11@STC;";
-            OracleConnection c = new OracleConnection(connc);
-            c.Open();
-            c.ClientInfo = "Sample Application";
-            c.ModuleName = "Chandrasekar";
-            c.ActionName = "Kafka";          
-            OracleCommand cmd = new OracleCommand("SELECT ITEM,PRICE FROM PRODUCT WHERE ITEM_CATEGORY='" + input + "' ORDER BY PRICE", c);
-            OracleDataAdapter adp = new OracleDataAdapter(cmd);
+            //return View();
+            //var connc = @"DATA SOURCE=localhost:1521/xe;SELF TUNING=True;USER ID=system;password=p#11@STC;";
+            //OracleConnection c = new OracleConnection(connc);
+            //c.Open();
+            //c.ClientInfo = "Sample Application";
+            //c.ModuleName = "Chandrasekar";
+            //c.ActionName = "Kafka";          
+            //OracleCommand cmd = new OracleCommand("SELECT ITEM,PRICE FROM PRODUCT WHERE ITEM_CATEGORY='" + input + "' ORDER BY PRICE", c);
+            //OracleDataAdapter adp = new OracleDataAdapter(cmd);
            
         }
 
