@@ -15,7 +15,7 @@ namespace SampleCodeQA.Controllers
             return View();
         }
 
-        public ActionResult About()
+        public ActionResult About(string input="12")
         {
             ViewBag.Message = "Your application description page.";
 
@@ -26,7 +26,8 @@ namespace SampleCodeQA.Controllers
             c.ClientInfo = "Sample Application";
             c.ModuleName = "Chandrasekar";
             c.ActionName = "Kafka";
-            OracleCommand cmd = new OracleCommand("select *from perf where id="+3, c);
+            input = System.Console.ReadLine();
+            OracleCommand cmd = new OracleCommand("SELECT ITEM,PRICE FROM PRODUCT WHERE ITEM_CATEGORY='" + input + "' ORDER BY PRICE";, c);
             OracleDataAdapter adp = new OracleDataAdapter(cmd);
            
         }
