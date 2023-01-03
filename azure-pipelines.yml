@@ -1,34 +1,103 @@
-# ASP.NET
-# Build and test ASP.NET projects.
-# Add steps that publish symbols, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/apps/aspnet/build-aspnet-4
-
 trigger:
-- master
 
-pool:
-  vmImage: 'windows-latest'
-
+  branches:
+    include:
+    - main
 variables:
-  solution: '**/*.sln'
-  buildPlatform: 'Any CPU'
-  buildConfiguration: 'Release'
+- name: solution
+  value: '**/*.sln'
+- name: buildPlatform
+  value: 'Any CPU'
+- name: buildConfiguration
+  value: 'Release'
+stages:
+- stage: __default
+  jobs:
+  - job: Job
+    pool:
+      vmImage: 'Windows-latest'
+    steps:
+    - task: NuGetToolInstaller@1
+    - task: NuGetCommand@2
+      displayName: 'Restore packages'
+      inputs:
+       restoreSolution: '$(solution)'
+    - task: NuGetCommand@2
+      displayName: 'Restore packages2'
+      inputs:
+       command: 'restore'
+       restoreSolution: '**/*.sln'
+       feedsToUse: 'select'
+    
+    - task: PowerShell@2
+      displayName: 'Download Codeql CLI package'
+      inputs:
+        targetType: inline
+        script: |
+          [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls -bor [Net.SecurityProtocolType]::Tls11 -bor [Net.SecurityProtocolType]::Tls12
+          Invoke-WebRequest -Uri https://github.com/github/codeql-action/releases/latest/download/codeql-bundle-win64.tar.gz -OutFile $(System.DefaultWorkingDirectory)/codeql-bundle-win64.tar.gz
+          tar -xvzf $(System.DefaultWorkingDirectory)/codeql-bundle-win64.tar.gz
+    - task: CmdLine@2
+      displayName: CodeQL Initialization
+      inputs:
+        script: |
+          mkdir $(System.DefaultWorkingDirectory)\codeql\codeql-dbs
+          $(System.DefaultWorkingDirectory)\codeql\codeql database init --language csharp --trace-process-name Agent.Worker.exe --source-root . --begin-tracing $(System.DefaultWorkingDirectory)/codeql/codeql-dbs/sec-poc-demo-csharp-repo
+    - task: PowerShell@2
+      displayName: Set CodeQL Environment Variables
+      inputs:
+        targetType: inline
+        script: |
+          $json = Get-Content $(System.DefaultWorkingDirectory)/codeql/codeql-dbs/sec-poc-demo-csharp-repo/temp/tracingEnvironment/start-tracing.json | ConvertFrom-Json
+          $json.PSObject.Properties | ForEach-Object {
+              $template = "##vso[task.setvariable variable="
+              $template += $_.Name
+              $template += "]"
+              $template += $_.Value
+              echo "$template"
+          }
+    - task: VSBuild@1
+      inputs:
+        solution: '**/*.sln'
+        msbuildArgs: '/p:OutDir=$(Build.ArtifactStagingDirectory) /p:UseSharedCompilation=false'
+        platform: Any CPU
+        configuration: Release
+        clean: True
+      displayName: Visual Studio Build
+    - task: VSBuild@1
+      inputs:
+        solution: '**/*.sln'
+        msbuildArgs: /p:OutDir=$(Build.ArtifactStagingDirectory) /p:UseSharedCompilation=false
+        platform: Any CPU
+        configuration: Release
+        clean: True
+      displayName: Visual Studio Build
+    - task: PowerShell@2
+      displayName: Clear CodeQL environment variables
+      inputs:
+        targetType: inline
+        script: |
+          $json = Get-Content $(System.DefaultWorkingDirectory)/codeql/codeql-dbs/sec-poc-demo-csharp-repo/temp/tracingEnvironment/end-tracing.json | ConvertFrom-Json
+          $json.PSObject.Properties | ForEach-Object {
+              $template = "##vso[task.setvariable variable="
+              $template += $_.Name
+              $template += "]"
+              $template += $_.Value
+              echo "$template"
+          }
+    - task: CmdLine@2
+      displayName: Finalize CodeQL database
+      inputs:
+        script: $(System.DefaultWorkingDirectory)/codeql/codeql database finalize $(System.DefaultWorkingDirectory)/codeql/codeql-dbs/sec-poc-demo-csharp-repo
+    - task: CmdLine@2
+      displayName: Analyze CodeQL database
+      inputs:
+        script: $(System.DefaultWorkingDirectory)/codeql/codeql database analyze $(System.DefaultWorkingDirectory)/codeql/codeql-dbs/sec-poc-demo-csharp-repo csharp-code-scanning.qls --sarif-category=csharp --format=sarif-latest --output=$(Agent.TempDirectory)/sec-poc-demo-csharp-repo.sarif
+    - task: PowerShell@2
+      displayName: Upload CodeQL results script:echo $(TOKEN) | $(System.DefaultWorkingDirectory)/codeql/codeql github upload-results --repository=Mariselvam-T/securityPOC-demo-csharp --ref=refs/heads/master --sarif=$(Agent.TempDirectory)/sec-poc-demo-csharp-repo.sarif --github-auth-stdin"
+      env:
+        TOKEN: $(gh.token)
+      inputs:
+        targetType: inline
+        script: ''
 
-steps:
-- task: NuGetToolInstaller@1
-
-- task: NuGetCommand@2
-  inputs:
-    restoreSolution: '$(solution)'
-
-- task: VSBuild@1
-  inputs:
-    solution: '$(solution)'
-    msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactStagingDirectory)"'
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
-
-- task: VSTest@2
-  inputs:
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
